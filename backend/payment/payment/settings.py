@@ -26,6 +26,11 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
 
+ESEWA_SECRET_KEY = os.environ.get(
+    "ESEWA_SECRET_KEY",
+    "8gBm/:&EnhH.1/q",  # eSewa sandbox (EPAYTEST) secret key
+)
+
 ALLOWED_HOSTS = [
     host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 ]

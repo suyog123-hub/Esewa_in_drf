@@ -31,6 +31,7 @@ export default function CartPage() {
 
   const items = cart?.items ?? []
   const total = cart?.total_price ?? '0.00'
+  const pay = cart?.payment ?? {}
 
   return (
     <div className="page">
@@ -92,11 +93,31 @@ export default function CartPage() {
             </table>
           </div>
 
+          <div className="cart-summary">
+            <div className="summary-row"><span>Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span><span>Rs. {pay.amount ?? total}</span></div>
+            <div className="summary-row"><span>VAT (13%)</span><span>Rs. {pay.tax_amount ?? '0.00'}</span></div>
+            <div className="summary-row"><span>Delivery</span><span>Rs. {pay.product_delivery_charge ?? '0.00'}</span></div>
+            <div className="summary-row total"><span>Total to Pay</span><span>Rs. {pay.total_amount ?? total}</span></div>
+          </div>
+
           <div className="cart-actions">
             <button onClick={handleClear} disabled={busyId === 'clear'} className="btn btn-danger">
               {busyId === 'clear' ? 'Clearing...' : 'Clear Cart'} (POST /cart/clear/{userId}/)
             </button>
-            <span className="muted">APIs: POST /cart/add/ &amp; POST /cart/remove/ &amp; POST /cart/clear/</span>
+            <form action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST" encType="application/x-www-form-urlencoded">
+              <input type="hidden" name="amount" value={pay.amount ?? total} />
+              <input type="hidden" name="tax_amount" value={pay.tax_amount ?? 0} />
+              <input type="hidden" name="total_amount" value={pay.total_amount ?? total} />
+              <input type="hidden" name="transaction_uuid" value={pay.transaction_uuid ?? ''} />
+              <input type="hidden" name="product_code" value={pay.product_code ?? 'EPAYTEST'} />
+              <input type="hidden" name="product_service_charge" value={pay.product_service_charge ?? 0} />
+              <input type="hidden" name="product_delivery_charge" value={pay.product_delivery_charge ?? 0} />
+              <input type="hidden" name="success_url" value={pay.success_url ?? 'https://developer.esewa.com.np/success'} />
+              <input type="hidden" name="failure_url" value={pay.failure_url ?? 'https://developer.esewa.com.np/failure'} />
+              <input type="hidden" name="signed_field_names" value={pay.signed_field_names ?? 'total_amount,transaction_uuid,product_code'} />
+              <input type="hidden" name="signature" value={pay.signature ?? ''} />
+              <button type="submit" className="btn btn-primary btn-lg">Pay with eSewa</button>
+            </form>
           </div>
         </>
       )}
