@@ -26,10 +26,17 @@ export function CartProvider({ children }) {
       const data = await cartApi.getCart(userId)
       setCart(data)
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Failed to fetch cart'
-      setError(msg)
-      // If cart not found (e.g. user not exists) keep null
-      console.error(msg)
+      setCart(null)
+      if (err.response?.status === 404 && userId !== 1) {
+        // The saved userId no longer exists on the backend (stale ids can
+        // persist in localStorage from earlier runs / manual edits).
+        // Fall back to the default user and clear the bad id from state.
+        setUserId(1)
+      } else {
+        const msg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to fetch cart'
+        setError(msg)
+        console.error(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -45,7 +52,7 @@ export function CartProvider({ children }) {
       await fetchCart()
       return { success: true }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message
+      const msg = err.response?.data?.error || err.response?.data?.detail || err.message
       return { success: false, error: msg }
     }
   }
@@ -56,7 +63,7 @@ export function CartProvider({ children }) {
       await fetchCart()
       return { success: true }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message
+      const msg = err.response?.data?.error || err.response?.data?.detail || err.message
       return { success: false, error: msg }
     }
   }
@@ -67,7 +74,7 @@ export function CartProvider({ children }) {
       await fetchCart()
       return { success: true }
     } catch (err) {
-      const msg = err.response?.data?.error || err.message
+      const msg = err.response?.data?.error || err.response?.data?.detail || err.message
       return { success: false, error: msg }
     }
   }

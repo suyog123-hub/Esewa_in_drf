@@ -6,3 +6,4 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "price", "created_at")
     search_fields = ("name",)
     list_filter = ("created_at",)
+
