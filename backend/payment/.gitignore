@@ -1,0 +1,30 @@
+# Python / Django
+myenv/
+venv/
+env/
+*.py[cod]
+*$py.class
+__pycache__/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# Django
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+static/
+.env
+
+# Secrets
+*.pem
+*.key
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
