@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Cart, CartItem, Product
+from .models import *
 from .serializers import CartSerializer, ProductSerializer
 from django.conf import settings
 import uuid
@@ -75,7 +75,6 @@ class CartDetailAPIView(APIView):
                 hashlib.sha256,
             ).digest()
         ).decode()
-
         payment = {
             "amount": amount,
             "tax_amount": vat,
