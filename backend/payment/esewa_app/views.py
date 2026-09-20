@@ -74,7 +74,6 @@ class CartDetailAPIView(APIView):
         transaction_uuid = str(uuid.uuid4())
         product_code = "EPAYTEST"
         signed_field_names = "total_amount,transaction_uuid,product_code"
-
         # Signature: base64(HMAC-SHA256(secret, "total_amount=..,transaction_uuid=..,product_code=.."))
         signature = generate_esewa_signature(
             self.ESewa_SECRET_KEY,
