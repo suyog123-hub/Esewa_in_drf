@@ -60,7 +60,6 @@ class ProductDetailAPIView(APIView):
 class CartDetailAPIView(APIView):
     """GET: List all items in a user's cart"""
     ESewa_SECRET_KEY = getattr(settings, 'ESEWA_SECRET_KEY', '8gBm/:&EnhH.1/q')
-
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         cart, _ = Cart.objects.get_or_create(user=user)
