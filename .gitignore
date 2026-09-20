@@ -4,3 +4,12 @@
 # Logs / misc
 *.log
 Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+venv/
+myenv/
