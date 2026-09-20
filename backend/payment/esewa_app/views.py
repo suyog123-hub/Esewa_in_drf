@@ -11,6 +11,20 @@ import base64
 import hashlib
 import hmac
 from decimal import Decimal
+
+
+def generate_esewa_signature(secret_key: str, fields: dict, signed_field_names: str) -> str:
+    message = ",".join(
+        f"{field}={fields.get(field, '')}"
+        for field in [name.strip() for name in signed_field_names.split(",")]
+    )
+    return base64.b64encode(
+        hmac.new(
+            secret_key.encode("utf-8"),
+            message.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+    ).decode()
 # =====================================================
 #  PRODUCT VIEWS
 # =====================================================
@@ -63,18 +77,15 @@ class CartDetailAPIView(APIView):
         signed_field_names = "total_amount,transaction_uuid,product_code"
 
         # Signature: base64(HMAC-SHA256(secret, "total_amount=..,transaction_uuid=..,product_code=.."))
-        message = ",".join([
-            f"total_amount={total_amount}",
-            f"transaction_uuid={transaction_uuid}",
-            f"product_code={product_code}",
-        ])
-        signature = base64.b64encode(
-            hmac.new(
-                self.ESewa_SECRET_KEY.encode("utf-8"),
-                message.encode("utf-8"),
-                hashlib.sha256,
-            ).digest()
-        ).decode()
+        signature = generate_esewa_signature(
+            self.ESewa_SECRET_KEY,
+            {
+                "total_amount": total_amount,
+                "transaction_uuid": transaction_uuid,
+                "product_code": product_code,
+            },
+            signed_field_names,
+        )
         payment = {
             "amount": amount,
             "tax_amount": vat,
@@ -83,8 +94,8 @@ class CartDetailAPIView(APIView):
             "product_code": product_code,
             "product_service_charge": service_charge,
             "product_delivery_charge": delivery_charge,
-            "success_url": "http://127.0.0.1:8000/esewa/success/",
-            "failure_url": "http://127.0.0.1:8000/esewa/failure/",
+            "success_url": f"http://127.0.0.1:8000/esewa/success/?user_id={user.id}",
+            "failure_url": f"http://127.0.0.1:8000/esewa/failure/?user_id={user.id}",
             "signed_field_names": signed_field_names,
             "signature": signature,
         }
@@ -160,4 +171,57 @@ class CartClearAPIView(APIView):
         return Response(
             {'message': 'Cart cleared successfully'},
             status=status.HTTP_200_OK
+        )
+
+
+# =====================================================
+#  eSEWA PAYMENT CALLBACKS
+# =====================================================
+
+class EsewaCallbackApiView(APIView):
+    """Base view shared by the eSewa success/failure callbacks."""
+    ESewa_SECRET_KEY = getattr(settings, 'ESEWA_SECRET_KEY', '8gBm/:&EnhH.1/q')
+
+    def _is_signature_valid(self, params: dict) -> bool:
+        signed_field_names = params.get('signed_field_names', '')
+        if not signed_field_names:
+            return False
+        expected = generate_esewa_signature(
+            self.ESewa_SECRET_KEY, params, signed_field_names
+        )
+        return hmac.compare_digest(expected, params.get('signature', ''))
+
+    def get(self, request):
+        params = request.GET
+        if params.get('status') == 'COMPLETE' and self._is_signature_valid(params):
+            self._on_success(params)
+            return Response(
+                {'message': 'Payment verified successfully', 'data': params},
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            {'message': 'Payment not completed or invalid signature'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def _on_success(self, params):
+        raise NotImplementedError
+
+
+class EsewaSuccessAPIView(EsewaCallbackApiView):
+    """eSewa redirects here after a successful payment."""
+
+    def _on_success(self, params):
+        user_id = params.get('user_id')
+        if user_id and user_id.isdigit():
+            Cart.objects.filter(user_id=int(user_id)).delete()
+
+
+class EsewaFailureAPIView(EsewaCallbackApiView):
+    """eSewa redirects here when the payment fails or is cancelled."""
+
+    def get(self, request):
+        return Response(
+            {'message': 'Payment was not completed'},
+            status=status.HTTP_400_BAD_REQUEST,
         )

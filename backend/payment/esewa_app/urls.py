@@ -10,4 +10,7 @@ urlpatterns = [
     path("cart/remove/<int:user_id>/", RemoveFromCartAPIView.as_view(), name="remove_from_cart"),
     path("cart/clear/<int:user_id>/", CartClearAPIView.as_view(), name="clear_cart"),
 
+    path("esewa/success/", EsewaSuccessAPIView.as_view(), name="esewa_success"),
+    path("esewa/failure/", EsewaFailureAPIView.as_view(), name="esewa_failure"),
+
 ]

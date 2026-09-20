@@ -47,4 +47,8 @@ All 6 DRF endpoints are integrated in `frontend/src/api/`:
 - `POST /cart/remove/<uid>/`     → `cartApi.removeFromCart(uid, itemId)`
 - `POST /cart/clear/<uid>/`      → `cartApi.clearCart(uid)`
 
+eSewa payment callbacks (auto-built into eSewa payload by `GET /cart/view/<uid>/`):
+- `GET  /esewa/success/?user_id=<uid>` → verifies eSewa HMAC signature, clears the paid cart
+- `GET  /esewa/failure/?user_id=<uid>` → payment failed/cancelled
+
 See `frontend/README.md` for mirroring table.

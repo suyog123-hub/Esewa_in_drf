@@ -19,6 +19,8 @@ REST API for a simple product + cart shop, built with Django 6.1 and Django REST
 | POST   | `/cart/add/<user_id>/`       | Add product to cart    |
 | POST   | `/cart/remove/<user_id>/`    | Remove cart item       |
 | POST   | `/cart/clear/<user_id>/`     | Clear cart             |
+| GET    | `/esewa/success/`            | eSewa payment callback<br>(verifies HMAC signature, clears paid cart for `?user_id=`) |
+| GET    | `/esewa/failure/`            | eSewa failure callback |
 
 ## Setup
 
